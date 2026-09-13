@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Seven-Segment Counting Game</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@400;700&family=Fredoka:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --background-color: #f0f4f8;
+            --container-color: #ffffff;
+            --primary-color: #3b82f6;
+            --secondary-color: #ef4444;
+            --text-color: #1f2937;
+            --shadow-color: rgba(0, 0, 0, 0.1);
+            --border-radius: 1rem;
+            --font-family-game: 'Fredoka', sans-serif;
+            --font-family-display: 'Roboto Mono', monospace;
+        }
+
+        body {
+            font-family: var(--font-family-game);
+            background-color: var(--background-color);
+            color: var(--text-color);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            padding: 1rem;
+            box-sizing: border-box;
+            text-align: center;
+        }
+
+        .game-container {
+            background-color: var(--container-color);
+            padding: 2rem;
+            border-radius: var(--border-radius);
+            box-shadow: 0 10px 20px var(--shadow-color);
+            width: 100%;
+            max-width: 600px;
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+            box-sizing: border-box;
+        }
+
+        .heading {
+            font-size: clamp(1.5rem, 5vw, 2.5rem);
+            color: var(--primary-color);
+            margin: 0;
+            font-weight: 700;
+        }
+
+        .instruction {
+            font-size: clamp(1rem, 3vw, 1.25rem);
+            margin: 0;
+        }
+
+        .display-area {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 2rem;
+            flex-wrap: wrap;
+        }
+
+        .seven-segment-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.5rem;
+            cursor: pointer; /* Add a pointer cursor to show it's clickable */
+            transition: transform 0.2s, box-shadow 0.2s;
+            border: 2px solid transparent;
+            padding: 0.5rem;
+            border-radius: var(--border-radius);
+        }
+        
+        .seven-segment-container:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 10px rgba(0,0,0,0.2);
+        }
+        
+        .seven-segment-container.correct {
+            border-color: #22c55e;
+            box-shadow: 0 0 15px #22c55e;
+        }
+        
+        .seven-segment-container.wrong {
+            border-color: var(--secondary-color);
+            box-shadow: 0 0 15px var(--secondary-color);
+        }
+
+        .seven-segment {
+            position: relative;
+            width: 100px;
+            height: 180px;
+            padding: 10px;
+            background-color: #e0e0e0;
+            border-radius: var(--border-radius);
+            box-shadow: inset 0 0 10px rgba(0,0,0,0.1);
+        }
+        
+        .segment {
+            position: absolute;
+            background-color: #999;
+            transition: background-color 0.2s ease-in-out;
+            border-radius: 5px;
+        }
+
+        .segment.on {
+            background-color: var(--secondary-color);
+            box-shadow: 0 0 10px var(--secondary-color), 0 0 20px var(--secondary-color);
+        }
+
+        /* Segment dimensions and positions for a standard seven-segment display */
+        .a, .d, .g {
+            width: 80px;
+            height: 10px;
+        }
+
+        .b, .c, .e, .f {
+            width: 10px;
+            height: 80px;
+        }
+
+        .a { top: 0; left: 10px; }
+        .b { top: 10px; left: 90px; }
+        .c { top: 90px; left: 90px; }
+        .d { top: 170px; left: 10px; }
+        .e { top: 90px; left: 0; }
+        .f { top: 10px; left: 0; }
+        .g { top: 80px; left: 10px; }
+        
+        .segment-count {
+            font-size: clamp(1rem, 3vw, 1.5rem);
+            font-weight: 700;
+            color: var(--primary-color);
+        }
+
+        .number-display {
+            font-family: var(--font-family-display);
+            font-size: clamp(4rem, 15vw, 6rem);
+            font-weight: 700;
+            color: var(--text-color);
+            margin: 0;
+        }
+
+        .number-area {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .button {
+            font-family: var(--font-family-game);
+            padding: 0.75rem 1.5rem;
+            font-size: clamp(1rem, 3vw, 1.25rem);
+            font-weight: 700;
+            color: white;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            box-shadow: 0 5px 10px rgba(0,0,0,0.2);
+            background: linear-gradient(135deg, #1d4ed8, #3b82f6);
+        }
+        
+        .button:active {
+            transform: translateY(2px);
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+        
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+        }
+
+        .modal.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .modal-content {
+            background-color: var(--container-color);
+            padding: 2rem;
+            border-radius: var(--border-radius);
+            box-shadow: 0 10px 30px var(--shadow-color);
+            max-width: 90%;
+            width: 400px;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            text-align: center;
+            transform: scale(0.9);
+            transition: transform 0.3s ease;
+        }
+
+        .modal.active .modal-content {
+            transform: scale(1);
+        }
+
+        .modal-heading {
+            font-size: clamp(2rem, 5vw, 3rem);
+            margin: 0;
+        }
+        
+        .modal-text {
+            font-size: clamp(1rem, 3vw, 1.25rem);
+            margin: 0;
+        }
+
+        .correct-message { color: #22c55e; }
+        .wrong-message { color: var(--secondary-color); }
+        .start-message { color: var(--primary-color); }
+        
+        .start-screen, .game-screen {
+            display: none;
+        }
+
+        .start-screen.active, .game-screen.active {
+            display: flex;
+        }
+
+        .splash-screen {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 1rem;
+        }
+
+    </style>
+</head>
+<body>
+
+    <div class="game-container">
+        
+        <div id="start-screen" class="start-screen active">
+            <div class="splash-screen">
+                <h1 class="heading">Seven-Segment Counting!</h1>
+                <p class="instruction">
+                    Welcome to the Seven-Segment Counting Game! Learn how numbers are made with lit-up segments.
+                </p>
+                <button id="start-game-button" class="button">Start Game!</button>
+            </div>
+        </div>
+
+        <div id="game-screen" class="game-screen">
+            <h1 class="heading">Count the Segments!</h1>
+            <p id="question" class="instruction">Click on the number with more lit segments!</p>
+
+            <div class="display-area">
+                <div id="choice1" class="seven-segment-container">
+                    <div id="display1" class="seven-segment">
+                        <div class="segment a"></div>
+                        <div class="segment b"></div>
+                        <div class="segment c"></div>
+                        <div class="segment d"></div>
+                        <div class="segment e"></div>
+                        <div class="segment f"></div>
+                        <div class="segment g"></div>
+                    </div>
+                    <p id="count1" class="segment-count">Segments: 0</p>
+                </div>
+                
+                <div id="choice2" class="seven-segment-container">
+                    <div id="display2" class="seven-segment">
+                        <div class="segment a"></div>
+                        <div class="segment b"></div>
+                        <div class="segment c"></div>
+                        <div class="segment d"></div>
+                        <div class="segment e"></div>
+                        <div class="segment f"></div>
+                        <div class="segment g"></div>
+                    </div>
+                    <p id="count2" class="segment-count">Segments: 0</p>
+                </div>
+            </div>
+
+            <div class="number-area">
+                <p id="number1" class="number-display">0</p>
+                <p class="instruction">vs</p>
+                <p id="number2" class="number-display">0</p>
+            </div>
+            
+        </div>
+
+    </div>
+
+    <div id="modal" class="modal">
+        <div class="modal-content">
+            <h2 id="modal-heading" class="modal-heading"></h2>
+            <p id="modal-text" class="modal-text"></p>
+            <button id="modal-button" class="button play-again-button">Next Round</button>
+        </div>
+    </div>
+    
+    <script>
+        // Define the segments for each digit (0-9)
+        const digitSegments = {
+            0: ['a', 'b', 'c', 'd', 'e', 'f'],
+            1: ['b', 'c'],
+            2: ['a', 'b', 'g', 'e', 'd'],
+            3: ['a', 'b', 'g', 'c', 'd'],
+            4: ['f', 'g', 'b', 'c'],
+            5: ['a', 'f', 'g', 'c', 'd'],
+            6: ['a', 'f', 'g', 'e', 'c', 'd'],
+            7: ['a', 'b', 'c'],
+            8: ['a', 'b', 'c', 'd', 'e', 'f', 'g'],
+            9: ['a', 'b', 'c', 'd', 'f', 'g']
+        };
+
+        const display1 = document.getElementById('display1');
+        const display2 = document.getElementById('display2');
+        const number1Display = document.getElementById('number1');
+        const number2Display = document.getElementById('number2');
+        const count1Display = document.getElementById('count1');
+        const count2Display = document.getElementById('count2');
+        const modal = document.getElementById('modal');
+        const modalHeading = document.getElementById('modal-heading');
+        const modalText = document.getElementById('modal-text');
+        const modalButton = document.getElementById('modal-button');
+        const startScreen = document.getElementById('start-screen');
+        const gameScreen = document.getElementById('game-screen');
+        const startGameButton = document.getElementById('start-game-button');
+        
+        const choice1Container = document.getElementById('choice1');
+        const choice2Container = document.getElementById('choice2');
+
+        let num1, num2;
+        let segments1, segments2;
+
+        function renderNumber(display, number) {
+            const segments = display.querySelectorAll('.segment');
+            segments.forEach(seg => seg.classList.remove('on'));
+            
+            const activeSegments = digitSegments[number];
+            if (activeSegments) {
+                activeSegments.forEach(seg => {
+                    display.querySelector(`.${seg}`).classList.add('on');
+                });
+            }
+            return activeSegments.length;
+        }
+
+        function generateNumbers() {
+            num1 = Math.floor(Math.random() * 10);
+            num2 = Math.floor(Math.random() * 10);
+            
+            // Ensure numbers are different to avoid a tie
+            while (num1 === num2) {
+                num2 = Math.floor(Math.random() * 10);
+            }
+            
+            // Update the display with the new numbers
+            number1Display.textContent = num1;
+            number2Display.textContent = num2;
+            
+            // Render the segments and get the count
+            segments1 = renderNumber(display1, num1);
+            segments2 = renderNumber(display2, num2);
+            
+            // Update the segment count display
+            count1Display.textContent = `Segments: ${segments1}`;
+            count2Display.textContent = `Segments: ${segments2}`;
+            
+            // Reset the visual state
+            choice1Container.classList.remove('correct', 'wrong');
+            choice2Container.classList.remove('correct', 'wrong');
+        }
+        
+        function checkAnswer(chosenContainer) {
+            const chosenId = chosenContainer.id;
+            const correctChoiceId = segments1 > segments2 ? 'choice1' : 'choice2';
+            const isCorrect = chosenId === correctChoiceId;
+
+            if (isCorrect) {
+                chosenContainer.classList.add('correct');
+            } else {
+                chosenContainer.classList.add('wrong');
+            }
+
+            let resultText = '';
+            if (segments1 > segments2) {
+                resultText = `The number ${num1} had more segments! (${segments1} vs ${segments2})`;
+            } else {
+                resultText = `The number ${num2} had more segments! (${segments2} vs ${segments1})`;
+            }
+
+            showModal(isCorrect, resultText);
+        }
+
+        function showModal(isCorrect, message) {
+            if (isCorrect) {
+                modalHeading.textContent = 'Great Job!';
+                modalHeading.className = 'modal-heading correct-message';
+                modalText.textContent = message;
+            } else {
+                modalHeading.textContent = 'Oops!';
+                modalHeading.className = 'modal-heading wrong-message';
+                modalText.textContent = message;
+            }
+            modal.classList.add('active');
+        }
+
+        function hideModal() {
+            modal.classList.remove('active');
+        }
+
+        function startGame() {
+            startScreen.classList.remove('active');
+            gameScreen.classList.add('active');
+            generateNumbers();
+        }
+        
+        // Event listeners for the new interaction method
+        choice1Container.addEventListener('click', () => checkAnswer(choice1Container));
+        choice2Container.addEventListener('click', () => checkAnswer(choice2Container));
+        startGameButton.addEventListener('click', startGame);
+        modalButton.addEventListener('click', () => {
+            hideModal();
+            generateNumbers();
+        });
+
+    </script>
+</body>
+</html>
